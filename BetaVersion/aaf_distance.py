@@ -62,8 +62,8 @@ parser.add_option("-G", dest = "memsize", type = float, default = 1,
                   help = "max memory to use (in GB), default = 1")
 parser.add_option("-o", dest = "otpf", default= 'aaf',
                   help = "prefix of the output files, default = aaf")
-parser.add_option("-f", dest = "countf", default = "phylokmer.dat.wc",
-                  help = "k-mer diversity file, default = phylokmer.dat.wc")
+parser.add_option("-f", dest = "countf", default = "phylokmer.wc",
+                  help = "k-mer diversity file, default = phylokmer.wc")
 parser.add_option("-l", dest = "long", action = 'store_true',
                   help = "use fitch_kmerX_long instead of fitch_kmerX")
 (options, args) = parser.parse_args()
