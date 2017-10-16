@@ -73,11 +73,6 @@ parser.add_option("-f", dest = "countf", default = "phylokmer.wc",
                   help = "k-mer diversity file, default = phylokmer.wc")
 (options, args) = parser.parse_args()
 
-if not options.iptf:
-    eprint('Input file (-i) is required')
-    eprint(Usage)
-    sys.exit()
-
 try:
     iptf = smartopen(options.iptf,'rt')
 except IOError:
