@@ -56,8 +56,8 @@ parser.add_option("-n", dest = "filter", type = int, default = 1,
                   help = "k-mer filtering threshold, default = 1")
 parser.add_option("-o", dest = "outFile", default = 'phylokmer',
                   help = "prefix of output file, default = phylokmer")
-parser.add_option("-d", dest = "dataDir", default = 'data',
-                  help = "directory containing the data, default = data/")
+parser.add_option("-d", dest = "dataDir", default = None,
+                  help = "directory containing the data")
 parser.add_option("-G", dest = "memSize", type = int, default = 4,
                   help = "total memory limit (in GB), default = 4")
 parser.add_option("-W", dest = "withKmer", action = 'store_true',
@@ -74,12 +74,6 @@ memPerThread = int(options.memSize / float(nThreads))
 if not memPerThread:
     print('Not enough memory, decrease nThreads or increase memSize')
     sys.exit()
-
-
-###check the data directory:
-if not os.path.isdir(options.dataDir):
-    print('Cannot find data directory {}'.format(options.dataDir))
-    sys.exit(2)
 
 
 ###check for the executable files:
@@ -116,22 +110,27 @@ else:
     filt = 'kmer_merge'
 
 if not options.sim:
-    if os.path.exists(os.path.join(options.dataDir, options.outFile)):
-        s = raw_input('{} is already in your data directory, overwrite it? Y/N '
+    if os.path.exists(options.outFile):
+        s = input('{} is already in your data directory, overwrite it? Y/N '
                       .format(options.outFile))
         if s == 'Y' or s == 'y':
           print('{} is going to be overwritten'.format(options.outFile))
         else:
-          print('No overwritting, exit')
+          print('No overwriting, exit')
           sys.exit(2)
 
 ###Get sample list:
-samples = []
-for fileName in os.listdir(options.dataDir):
-    if os.path.isdir(os.path.join(options.dataDir, fileName)):
-        samples.append(fileName)
-    else:
-        if not fileName.startswith('.'):
+# This whole logic is weird. Remove?!
+samples = args
+if options.dataDir != None:
+    ###check the data directory:
+    if not os.path.isdir(options.dataDir):
+        print('Cannot find data directory {}'.format(options.dataDir))
+        sys.exit(2)
+    for fileName in os.listdir(options.dataDir):
+        if os.path.isdir(os.path.join(options.dataDir, fileName)):
+            samples.append(fileName)
+        elif not fileName.startswith('.'):
             if fileName.endswith('.gz'):
                 sample = '_'.join(fileName.split(".")[:-2])
             else:
@@ -156,19 +155,17 @@ for sample in samples:
     command = '{} -l {} -n {} -G {} -o {} -f '.format(kmerCount, options.kLen,
                n, memPerThread, outFile)
     command1 = ''
-    for inputFile in os.listdir(os.path.join(options.dataDir, sample)):
-        inputFile = os.path.join(options.dataDir, sample, inputFile)
-        handle = smartopen(inputFile)
-        firstChar = handle.read(1)
-        if firstChar == '@':
-            seqFormat = 'FQ'
-        elif firstChar == '>':
-            seqFormat = 'FA'
-        else:
-            print('Error, file {} is not FA or FQ format. Aborting!'.\
-                           format(inputFile))
-            sys.exit(3)
-        command1 += " -i '{}'".format(inputFile)
+    handle = smartopen(sample)
+    firstChar = handle.read(1)
+    if firstChar == '@':
+        seqFormat = 'FQ'
+    elif firstChar == '>':
+        seqFormat = 'FA'
+    else:
+        print('Error, file {} is not FA or FQ format. Aborting!'.\
+                       format(sample))
+        sys.exit(3)
+    command1 += " -i '{}'".format(sample)
     command += '{}{}> {}.wc'.format(seqFormat,command1,sample)
     jobList.append(command)
 jobList = jobList[::-1]
