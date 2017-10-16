@@ -1,5 +1,5 @@
 CC        = cc
-CFLAGS    = -O3 -fomit-frame-pointer
+CFLAGS    = -O3 -fomit-frame-pointer -ggdb
 LIBS      = -lm
 
 all:            fitch_kmerX consense treedist fitch_kmerX_long
